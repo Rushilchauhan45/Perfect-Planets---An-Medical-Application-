@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "PerfectPlanets",
-    "slug": "PerfectPlanets",
+    "name": "Perfect Planets",
+    "slug": "perfect-planets",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,21 +9,23 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true
+      "backgroundColor": "#FFF0F5"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFF0F5"
+      },
+      "package": "com.perfectplanets.app"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/icon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "beb9cdfc-b1de-4866-881d-550a51aa1663"
+      }
+    },
+    "owner": "pixoragraphics"
   }
 }
