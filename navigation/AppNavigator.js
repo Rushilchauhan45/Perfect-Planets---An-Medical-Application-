@@ -27,6 +27,7 @@ export default function AppNavigator() {
         screenOptions={{
           headerShown: false,
           cardStyle: { backgroundColor: '#FFF0F5' },
+          animationEnabled: false,
         }}
       >
         <Stack.Screen name="Splash" component={SplashScreen} />

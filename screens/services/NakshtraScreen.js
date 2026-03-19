@@ -2,15 +2,15 @@
 
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  Modal,
-  Dimensions,
-  ActivityIndicator,
-  Platform,
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    FlatList,
+    Modal,
+    Dimensions,
+    ActivityIndicator,
+    Platform,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS } from '../../theme';
@@ -149,7 +149,7 @@ function PdfViewerModal({ visible, nakshtra, onClose }) {
                     ) : (
                         <Pdf
                             ref={pdfRef}
-                            source={nakshtra.pdf}
+                            source={{ uri: nakshtra.pdf, cache: true }}
                             style={[pdfStyles.pdf, (loading || error) && { opacity: 0 }]}
                             page={currentPage}
                             horizontal={false}

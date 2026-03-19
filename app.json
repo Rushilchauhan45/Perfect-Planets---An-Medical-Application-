@@ -16,7 +16,11 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFF0F5"
       },
-      "package": "com.perfectplanets.app"
+      "package": "com.perfectplanets.app",
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/icon.png"
