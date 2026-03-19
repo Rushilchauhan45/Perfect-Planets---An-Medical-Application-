@@ -19,17 +19,19 @@
       "package": "com.perfectplanets.app",
       "permissions": [
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.INTERNET"
       ]
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.perfectplanets.app"
     },
     "web": {
       "favicon": "./assets/icon.png"
     },
-    "extra": {
-      "eas": {
-        "projectId": "beb9cdfc-b1de-4866-881d-550a51aa1663"
-      }
-    },
-    "owner": "pixoragraphics"
+    "plugins": [
+      "expo-file-system"
+    ]
   }
 }
