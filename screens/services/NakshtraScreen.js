@@ -15,14 +15,9 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS } from '../../theme';
 
-let Pdf = null;
-if (Platform.OS !== 'web') {
-    try {
-        Pdf = require('react-native-pdf').default;
-    } catch (e) {
-        Pdf = null;
-    }
-}
+import * as FileSystem from 'expo-file-system';
+import { WebView } from 'react-native-webview';
+import { Asset } from 'expo-asset';
 
 const { width } = Dimensions.get('window');
 
@@ -57,181 +52,81 @@ const NAKSHTRAS = [
 ];
 
 function PdfViewerModal({ visible, nakshtra, onClose }) {
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(0);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
-    const pdfRef = React.useRef(null);
+  const [pdfUri, setPdfUri] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
 
-    React.useEffect(() => {
-        if (visible) {
-            setCurrentPage(1);
-            setTotalPages(0);
-            setLoading(true);
-            setError(false);
-        }
-    }, [visible, nakshtra]);
+  React.useEffect(() => {
+    if (visible && nakshtra) {
+      loadPdf();
+    }
+  }, [visible, nakshtra]);
 
-    const goToPrevPage = () => {
-        if (currentPage > 1) {
-            const newPage = currentPage - 1;
-            setCurrentPage(newPage);
-            pdfRef.current?.setPage(newPage);
-        }
-    };
+  const loadPdf = async () => {
+    try {
+      setLoading(true);
+      setPdfUri(null);
+      const asset = Asset.fromModule(nakshtra.pdf);
+      await asset.downloadAsync();
+      setPdfUri(asset.localUri);
+      setLoading(false);
+    } catch (e) {
+      console.log('PDF load error:', e);
+      setLoading(false);
+    }
+  };
 
-    const goToNextPage = () => {
-        if (currentPage < totalPages) {
-            const newPage = currentPage + 1;
-            setCurrentPage(newPage);
-            pdfRef.current?.setPage(newPage);
-        }
-    };
+  if (!nakshtra) return null;
 
-    if (!nakshtra) return null;
+  const googleDocsUrl = pdfUri
+    ? `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(pdfUri)}`
+    : null;
 
-    return (
-        <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-            <View style={pdfStyles.container}>
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      <View style={pdfStyles.container}>
+        {/* Header */}
+        <View style={pdfStyles.header}>
+          <TouchableOpacity style={pdfStyles.closeBtn} onPress={onClose}>
+            <Ionicons name="arrow-back" size={22} color={COLORS.primaryText} />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={pdfStyles.headerTitle}>
+              {nakshtra.emoji}  {nakshtra.name}
+            </Text>
+            <Text style={pdfStyles.headerSubtitle}>Nakshtra Vichar</Text>
+          </View>
+        </View>
 
-                {/* Header */}
-                <View style={pdfStyles.header}>
-                    <TouchableOpacity style={pdfStyles.closeBtn} onPress={onClose}>
-                        <Ionicons name="arrow-back" size={22} color={COLORS.primaryText} />
-                    </TouchableOpacity>
-                    <View style={{ flex: 1 }}>
-                        <Text style={pdfStyles.headerTitle}>
-                            {nakshtra.emoji}  {nakshtra.name}
-                        </Text>
-                        <Text style={pdfStyles.headerSubtitle}>Nakshtra Vichar</Text>
-                    </View>
-                    {totalPages > 0 && (
-                        <View style={pdfStyles.pageCounter}>
-                            <Text style={pdfStyles.pageCounterText}>
-                                {currentPage} / {totalPages}
-                            </Text>
-                        </View>
-                    )}
-                </View>
-
-                {/* PDF Area */}
-                <View style={pdfStyles.pdfContainer}>
-
-                    {/* Loading */}
-                    {loading && !error && (
-                        <View style={pdfStyles.loadingContainer}>
-                            <ActivityIndicator size="large" color={COLORS.buttonBg} />
-                            <Text style={pdfStyles.loadingText}>Loading PDF...</Text>
-                        </View>
-                    )}
-
-                    {/* Error */}
-                    {error && (
-                        <View style={pdfStyles.errorContainer}>
-                            <Text style={pdfStyles.errorEmoji}>📄</Text>
-                            <Text style={pdfStyles.errorTitle}>PDF Load Error</Text>
-                            <Text style={pdfStyles.errorText}>
-                                Could not load {nakshtra.name} PDF.
-                            </Text>
-                            <TouchableOpacity style={pdfStyles.retryBtn} onPress={onClose}>
-                                <Text style={pdfStyles.retryBtnText}>Go Back</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-
-                    {/* Web Notice */}
-                    {Platform.OS === 'web' && (
-                        <View style={pdfStyles.webNotice}>
-                            <Text style={pdfStyles.webNoticeEmoji}>📱</Text>
-                            <Text style={pdfStyles.webNoticeTitle}>Mobile Only</Text>
-                            <Text style={pdfStyles.webNoticeText}>
-                                PDF viewer works on Android only.
-                            </Text>
-                        </View>
-                    )}
-
-                    {/* Real PDF — Android Only */}
-                    {Platform.OS !== 'web' && Pdf && (
-                        <Pdf
-                            ref={pdfRef}
-                            source={nakshtra.pdf}
-                            style={[
-                                pdfStyles.pdf,
-                                (loading || error) && { position: 'absolute', opacity: 0 },
-                            ]}
-                            page={1}
-                            horizontal={false}
-                            enablePaging={false}
-                            fitPolicy={0}
-                            onLoadComplete={(numberOfPages) => {
-                                setTotalPages(numberOfPages);
-                                setLoading(false);
-                                setError(false);
-                            }}
-                            onPageChanged={(page) => {
-                                setCurrentPage(page);
-                            }}
-                            onError={(err) => {
-                                console.log('PDF Error:', err);
-                                setLoading(false);
-                                setError(true);
-                            }}
-                            trustAllCerts={true}
-                        />
-                    )}
-                </View>
-
-                {/* Navigation */}
-                {!loading && !error && totalPages > 0 && Platform.OS !== 'web' && (
-                    <View style={pdfStyles.navigation}>
-                        <TouchableOpacity
-                            style={[pdfStyles.navBtn, currentPage === 1 && pdfStyles.navBtnDisabled]}
-                            onPress={goToPrevPage}
-                            disabled={currentPage === 1}
-                        >
-                            <Ionicons
-                                name="chevron-back"
-                                size={20}
-                                color={currentPage === 1 ? '#bbb' : '#fff'}
-                            />
-                            <Text style={[
-                                pdfStyles.navBtnText,
-                                currentPage === 1 && pdfStyles.navBtnTextDisabled,
-                            ]}>Previous</Text>
-                        </TouchableOpacity>
-
-                        <View style={pdfStyles.progressContainer}>
-                            <View style={pdfStyles.progressBar}>
-                                <View style={[
-                                    pdfStyles.progressFill,
-                                    { width: `${(currentPage / totalPages) * 100}%` },
-                                ]} />
-                            </View>
-                            <Text style={pdfStyles.progressText}>
-                                Page {currentPage} of {totalPages}
-                            </Text>
-                        </View>
-
-                        <TouchableOpacity
-                            style={[pdfStyles.navBtn, currentPage === totalPages && pdfStyles.navBtnDisabled]}
-                            onPress={goToNextPage}
-                            disabled={currentPage === totalPages}
-                        >
-                            <Text style={[
-                                pdfStyles.navBtnText,
-                                currentPage === totalPages && pdfStyles.navBtnTextDisabled,
-                            ]}>Next</Text>
-                            <Ionicons
-                                name="chevron-forward"
-                                size={20}
-                                color={currentPage === totalPages ? '#bbb' : '#fff'}
-                            />
-                        </TouchableOpacity>
-                    </View>
-                )}
-            </View>
-        </Modal>
-    );
+        {/* PDF Viewer */}
+        {loading ? (
+          <View style={pdfStyles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.buttonBg} />
+            <Text style={pdfStyles.loadingText}>Loading PDF...</Text>
+          </View>
+        ) : pdfUri ? (
+          <WebView
+            source={{ uri: `file://${pdfUri}` }}
+            style={{ flex: 1 }}
+            originWhitelist={['*']}
+            allowFileAccess={true}
+            allowFileAccessFromFileURLs={true}
+            allowUniversalAccessFromFileURLs={true}
+            onError={() => setLoading(false)}
+          />
+        ) : (
+          <View style={pdfStyles.errorContainer}>
+            <Text style={pdfStyles.errorEmoji}>📄</Text>
+            <Text style={pdfStyles.errorTitle}>PDF Load Error</Text>
+            <TouchableOpacity style={pdfStyles.retryBtn} onPress={onClose}>
+              <Text style={pdfStyles.retryBtnText}>Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    </Modal>
+  );
 }
 
 export default function NakshtraScreen({ navigation }) {
